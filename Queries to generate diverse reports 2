@@ -1,0 +1,159 @@
+--1. Get me a report of the number of employees in the company.
+
+Select empid, Count(All(empid)) As numemployees
+From [HR].[Employees]
+Group by empid;
+
+--2. Get me a report of all employees' regions and the number of employees who live in that region.
+
+Select region, Count(empid) As numemployees_region
+From HR.Employees
+Group by region;
+
+--3. Get me report of all order id’s and the total amount of freights associated with that order
+
+Select orderid, sum(freight) As total_freight 
+from [Sales].[Orders]
+Group by orderid;
+
+--4. Get me a report of order id, order date and the complete location of the order, which is a combination of ship city and ship region.
+
+Select orderid, orderdate,shipcity+' '+shipregion As Order_Location
+From [Sales].[Orders];
+
+--5. Get the employee name which is the combination of the first and last names, the city and the first three characters of the employee’s city as Abbreviated City.
+
+Select empid, firstname+' '+lastname As Employee_Name, City, (left(city,3)) As Abbreviated_City
+From [HR].[Employees]; 
+
+--6. Get the employee last name, first name and the length of characters of the employee’s last name as Name Length.
+
+Select empid, lastname, firstname, LEN(lastname) As Name_Lenght
+From [HR].[Employees];
+
+--7. Get the shipper id, contact name and the region. Please replace all the Null regions with ‘CA’.
+
+Select P.shipperid, S.contactname, ISNULL(S.region,'CA') As region
+From [Sales].[Orders] P
+INNER JOIN [Sales].[Customers] S
+ON S.custid = P.custid;
+
+--8. Get the employee last name, first name and the number of years he/she has been employed by the company.
+
+Select empid, lastname, firstname, DATEDIFF(YEAR,hiredate,GETDATE()) As Num_of_years
+From [HR].[Employees];
+
+--9. Get the employee last name, first name, title and age.
+
+Select empid, lastname,firstname,title,Floor((Datediff(day,birthdate,Getdate()))/365.25) As Age
+From [HR].[Employees];
+
+--10. Get the employee last name, first name, title and age for all employees with greater than the average age.
+
+Select empid, lastname,firstname,title,Floor((Datediff(day,birthdate,Getdate()))/365.25) As Age
+From [HR].[Employees]
+Where Floor((Datediff(day,birthdate,Getdate()))/365.25) > (select Avg(Datediff(day,birthdate,Getdate()))/365.25
+As Average_age From [HR].[Employees]);
+     
+--11.Use the Numbs table to generate a result with a row for each weekday (1 through 7) and shift number (1 through 3), assuming there are three shifts a day. The result can later be used
+--as the basis for building information about activities in the different shifts in the different days. With 7 days in the week and 3 shifts every day, the result should be 21 rows.
+
+Select D.n As days, S.n As shifts
+From Nums As D
+Cross Join Nums As S
+Where D.n <= 7 and S.n <= 3
+Order by days;
+
+--12.Write a query that returns suppliers from Japan and the products they supply.
+
+SELECT   S.companyname,
+         S.city,
+		 S.country,
+		 S.phone,
+		 P.productid,
+		 P.productname,
+		 P.unitprice
+FROM [Production].[Products]P
+INNER JOIN [Production].[Suppliers]S
+ON P.supplierid=S.supplierid
+WHERE S.country = 'JAPAN';
+
+--13.Write a query to return the employee id, the employee name which is a combination of the first
+--and last names and match with their manager’s name which is a combination of their first and last names.
+
+Select E1.empid, 
+       E1.firstname+' '+E1.lastname As Employee_name,
+	   E2.empid As Manager_ID,
+	   E2.firstname+' '+E2.lastname As Manager_name
+ From [HR].[Employees] E1
+ LEFT JOIN [HR].[Employees] E2
+ ON E2.empid = E1.mgrid;
+
+ Select empid, concat(lastname,+' '+ firstname)fullname, mgrid from HR.Employees;
+
+--14.Write a query that returns suppliers from Japan and the products they supply, including suppliers from Japan that don’t have related products.
+
+Select S.supplierid,
+		   S.contactname,
+		   S.city,
+		   S.country,
+		   P.productid,
+		   P.productname,
+		   P.unitprice
+	  From [Production].[Suppliers] S
+	  FULL JOIN [Production].[Products] P
+	  ON S.supplierid = P.supplierid 
+	  Where S.country = 'Japan';		 
+
+
+--15.Write a query that returns locations that are employee locations or customer locations or both.
+--(i.e: location here is selecting country, region, city)
+
+SELECT DISTINCT city, region, country
+FROM HR.Employees
+
+UNION
+
+SELECT DISTINCT city, region, country
+FROM Sales.Customers;
+
+--16.Write a query that returns locations that are employee locations or customer locations.
+--(i.e: location here is selecting country, region, city)
+
+SELECT DISTINCT city, region, country
+FROM HR.Employees
+
+UNION ALL
+
+SELECT DISTINCT city, region, country
+FROM Sales.Customers;
+
+--17.Generate a report showing all customers without orders. Please remember to include null in your filter.
+
+SELECT C.custid,
+       C.companyname,
+	   C.contactname,
+	   C.country,
+	   C.phone
+  FROM Sales.Customers C
+  LEFT JOIN Sales.Orders O
+  ON C.custid = O.custid
+  WHERE O.custid IS NULL;
+
+  select * from [Sales].[Orders]
+
+--18. Write a query that returns all customers, but matches orders only if they were placed in FEBRUARY 2008.
+
+SELECT C.custid,
+       C.companyname,
+	   C.contactname,
+	   C.country,
+	   C.phone,
+	   O.orderid,
+	   O.orderdate
+  FROM Sales.Customers C
+  LEFT JOIN Sales.Orders O
+  ON C.custid = O.custid
+  WHERE O.orderdate BETWEEN '02/01/2008' AND '02/28/2008'
+  ORDER BY custid;
+
